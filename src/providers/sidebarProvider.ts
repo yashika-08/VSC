@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { ScanOrchestrator } from '../analysis/scanOrchestrator';
 import { ScanResult } from '../utils/types';
 import { getSidebarHtml } from '../webview/sidebarHtml';
@@ -46,7 +45,7 @@ export class SentinelSidebarProvider implements vscode.WebviewViewProvider {
         case 'openSettings':
           vscode.commands.executeCommand('workbench.action.openSettings', 'sentinel');
           break;
-        case 'goToLine':
+        case 'goToLine': {
           const editor = vscode.window.activeTextEditor;
           if (editor && msg.line) {
             const pos = new vscode.Position(msg.line - 1, 0);
@@ -55,6 +54,7 @@ export class SentinelSidebarProvider implements vscode.WebviewViewProvider {
             vscode.window.showTextDocument(editor.document);
           }
           break;
+        }
         case 'copyFix':
           if (msg.fix) vscode.env.clipboard.writeText(msg.fix);
           break;

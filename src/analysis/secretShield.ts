@@ -68,7 +68,7 @@ const SECRET_PATTERNS: SecretPattern[] = [
   },
   {
     name: 'Generic API Key',
-    pattern: /(?:api.?key|apikey|api_token)['":\s=]+['"`]([A-Za-z0-9_\-]{20,})['"`]/gi,
+    pattern: /(?:api.?key|apikey|api_token)['":\s=]+['"`]([A-Za-z0-9_-]{20,})['"`]/gi,
     description: 'Generic API key hardcoded in source.',
     owaspCategory: 'A02',
     severity: 'critical'

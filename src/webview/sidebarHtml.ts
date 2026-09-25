@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export function getSidebarHtml(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+export function getSidebarHtml(_webview: vscode.Webview, _extensionUri: vscode.Uri): string {
   const nonce = getNonce();
 
   return `<!DOCTYPE html>

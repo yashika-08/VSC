@@ -1,0 +1,12 @@
+.vscode/**
+.vscode-test/**
+src/**
+test/**
+node_modules/**
+.gitignore
+tsconfig.json
+**/*.ts
+**/*.map
+*.docx
+extract_docx.ps1
+eval_plan_text.txt

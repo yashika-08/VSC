@@ -4,6 +4,7 @@ import { SentinelDiagnosticsProvider } from './providers/diagnosticsProvider';
 import { SentinelSidebarProvider } from './providers/sidebarProvider';
 import { SentinelIssuesTreeProvider } from './providers/issuesTreeProvider';
 import { SentinelOwaspTreeProvider } from './providers/owaspTreeProvider';
+import { FixPreviewContentProvider } from './providers/fixPreviewProvider';
 import { SecretShieldWorker } from './analysis/secretShield';
 import { ScanOrchestrator } from './analysis/scanOrchestrator';
 import { StatusBarManager } from './utils/statusBar';
@@ -11,6 +12,7 @@ import { StatusBarManager } from './utils/statusBar';
 let scanOrchestrator: ScanOrchestrator;
 let statusBarManager: StatusBarManager;
 let diagnosticsProvider: SentinelDiagnosticsProvider;
+let fixPreviewProvider: FixPreviewContentProvider;
 
 export function activate(context: vscode.ExtensionContext) {
   console.log('Sentinel-VSC activated');
@@ -20,6 +22,12 @@ export function activate(context: vscode.ExtensionContext) {
   const secretShield = new SecretShieldWorker();
   scanOrchestrator = new ScanOrchestrator(diagnosticsProvider, secretShield);
   statusBarManager = new StatusBarManager();
+
+  // Fix preview content provider (for sentinel-fix: URI scheme)
+  fixPreviewProvider = new FixPreviewContentProvider();
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider('sentinel-fix', fixPreviewProvider)
+  );
 
   // Sidebar webview
   const sidebarProvider = new SentinelSidebarProvider(context.extensionUri, scanOrchestrator);
@@ -89,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Sentinel: Fix applied! Re-scanning...');
         vscode.commands.executeCommand('sentinel.scanFile');
       } else if (action === 'Preview') {
-        showFixPreviewDiff(editor.document, fix);
+        showFixPreviewDiff(editor.document, fix, fixPreviewProvider);
       }
     }),
 
@@ -150,15 +158,24 @@ export function activate(context: vscode.ExtensionContext) {
   statusBarManager.setReady();
   context.subscriptions.push(statusBarManager);
   context.subscriptions.push(diagnosticsProvider);
+  context.subscriptions.push(secretShield);
 }
 
-async function showFixPreviewDiff(doc: vscode.TextDocument, fix: any) {
-  // Open a diff view showing current vs fixed code
+async function showFixPreviewDiff(
+  doc: vscode.TextDocument,
+  fix: any,
+  provider: FixPreviewContentProvider
+) {
+  // Build the full document text with the fix applied
   const fixedContent = doc.getText().substring(0, doc.offsetAt(fix.range.start))
     + fix.replacement
     + doc.getText().substring(doc.offsetAt(fix.range.end));
-  const tmpUri = vscode.Uri.parse(`sentinel-fix:${doc.fileName}?fix=${fix.id}`);
-  vscode.commands.executeCommand('vscode.diff', doc.uri, tmpUri, 'Current ↔ Sentinel Fix');
+
+  // Store the content in the provider so it can serve it when VS Code requests it
+  const fixUri = provider.setFixContent(doc.uri, fix.id, fixedContent);
+
+  // Open the built-in diff editor: original ↔ fixed
+  vscode.commands.executeCommand('vscode.diff', doc.uri, fixUri, 'Current ↔ Sentinel Fix');
 }
 
 function isSupportedLanguage(languageId: string): boolean {
@@ -170,4 +187,5 @@ export function deactivate() {
   scanOrchestrator?.dispose();
   statusBarManager?.dispose();
   diagnosticsProvider?.dispose();
+  fixPreviewProvider?.dispose();
 }

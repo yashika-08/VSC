@@ -4,8 +4,12 @@
   "description": "Real-Time Security Guardrail for AI-Assisted Development",
   "version": "1.0.0",
   "publisher": "sentinel-security",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yashika-08/Sentinel-VSC"
+  },
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.115.0"
   },
   "categories": [
     "Linters",
@@ -15,7 +19,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
   "contributes": {
     "commands": [
       {
@@ -52,15 +56,18 @@
         {
           "type": "webview",
           "id": "sentinel.securityPanel",
-          "name": "Security Report"
+          "name": "Security Report",
+          "icon": "$(shield)"
         },
         {
           "id": "sentinel.issuesTree",
-          "name": "Vulnerabilities"
+          "name": "Vulnerabilities",
+          "icon": "$(bug)"
         },
         {
           "id": "sentinel.owaspTree",
-          "name": "OWASP Coverage"
+          "name": "OWASP Coverage",
+          "icon": "$(list-tree)"
         }
       ]
     },
@@ -71,6 +78,16 @@
           "type": "string",
           "default": "",
           "description": "Anthropic API key for LLM Security Critic"
+        },
+        "sentinel.llmModel": {
+          "type": "string",
+          "default": "claude-sonnet-4-20250514",
+          "enum": [
+            "claude-sonnet-4-20250514",
+            "claude-opus-4-20250514",
+            "claude-haiku-35-20241022"
+          ],
+          "description": "Anthropic model to use for the LLM Security Critic"
         },
         "sentinel.scanOnSave": {
           "type": "boolean",
@@ -165,6 +182,8 @@
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^20.19.39",
     "@types/vscode": "^1.115.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -172,6 +191,8 @@
     "@vscode/test-electron": "^2.3.0",
     "@vscode/vsce": "^2.22.0",
     "eslint": "^8.0.0",
+    "glob": "^13.0.6",
+    "mocha": "^11.8.0",
     "typescript": "^5.3.0"
   },
   "directories": {

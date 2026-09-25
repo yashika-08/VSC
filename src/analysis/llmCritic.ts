@@ -17,14 +17,34 @@ interface LLMAnalysisResponse {
 }
 
 export class LLMSecurityCritic {
-  private readonly MODEL = 'claude-opus-4-5';
+  private static readonly DEFAULT_MODEL = 'claude-sonnet-4-20250514';
   private readonly MAX_CODE_LENGTH = 8000;
 
-  private getApiKey(): string {
+  /**
+   * Read the model ID from user settings, falling back to the default.
+   * This avoids a hardcoded string that silently breaks when deprecated.
+   */
+  private getModel(): string {
+    const config = vscode.workspace.getConfiguration('sentinel');
+    return config.get<string>('llmModel') || LLMSecurityCritic.DEFAULT_MODEL;
+  }
+
+  private async getApiKey(): Promise<string> {
     const config = vscode.workspace.getConfiguration('sentinel');
     const key = config.get<string>('anthropicApiKey');
     if (!key) {
-      throw new Error('Sentinel: No Anthropic API key configured. Add it in Settings > Sentinel > Anthropic Api Key.');
+      const action = await vscode.window.showWarningMessage(
+        'Sentinel: No Anthropic API key configured. The LLM Security Critic requires an API key to analyze code.',
+        'Open Settings',
+        'Continue without LLM'
+      );
+      if (action === 'Open Settings') {
+        vscode.commands.executeCommand(
+          'workbench.action.openSettings',
+          'sentinel.anthropicApiKey'
+        );
+      }
+      throw new Error('Anthropic API key not configured');
     }
     return key;
   }
@@ -34,7 +54,7 @@ export class LLMSecurityCritic {
     language: string,
     existingSastIssues: SecurityIssue[]
   ): Promise<SecurityIssue[]> {
-    const apiKey = this.getApiKey();
+    const apiKey = await this.getApiKey();
     const truncatedCode = code.length > this.MAX_CODE_LENGTH
       ? code.substring(0, this.MAX_CODE_LENGTH) + '\n// [truncated for analysis]'
       : code;
@@ -80,7 +100,7 @@ Return ONLY the JSON object.`;
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: this.MODEL,
+        model: this.getModel(),
         max_tokens: 2048,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
@@ -124,7 +144,7 @@ Return ONLY the JSON object.`;
     issue: SecurityIssue,
     language: string
   ): Promise<FixSuggestion | null> {
-    const apiKey = this.getApiKey();
+    const apiKey = await this.getApiKey();
     const lines = code.split('\n');
     const context = lines.slice(
       Math.max(0, issue.line - 5),
@@ -163,7 +183,7 @@ Return ONLY the JSON fix object.`;
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: this.MODEL,
+          model: this.getModel(),
           max_tokens: 1024,
           system: systemPrompt,
           messages: [{ role: 'user', content: userPrompt }]

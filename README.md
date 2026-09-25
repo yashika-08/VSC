@@ -14,16 +14,16 @@ Sentinel-VSC sits between your LLM's output and your editor, ensuring every AI-g
 - **Sidebar panel** with detailed security report, score breakdown, and OWASP coverage
 
 ### 🔍 Hybrid Analysis Engine
-- **SAST (Static Analysis)**: 20+ pattern rules covering OWASP Top 10
-  - SQL Injection (A03)
-  - XSS / DOM Injection (A03)
-  - Broken Authentication / JWT (A07)
-  - Path Traversal (A01)
-  - Command Injection (A03)
-  - Insecure Deserialization (A08)
-  - Security Misconfiguration (A05)
-  - SSRF (A10)
-  - Sensitive Data Exposure (A02, A09)
+- **SAST (Static Analysis)**: 33 pattern rules covering OWASP Top 10
+  - SQL Injection (A03) — JS/TS, Python, Java, Go, Ruby, PHP
+  - XSS / DOM Injection (A03) — JS/TS, Java, Ruby, PHP
+  - Broken Authentication / JWT (A07) — JS/TS, Python
+  - Path Traversal (A01) — JS/TS, Java
+  - Command Injection (A03) — JS/TS, Python, Go, Ruby, PHP
+  - Insecure Deserialization (A08) — JS/TS, Python, Java, PHP
+  - Security Misconfiguration (A05) — JS/TS, Python, Go
+  - SSRF (A10) — JS/TS
+  - Sensitive Data Exposure (A02, A09) — JS/TS
 - **LLM Security Critic**: Sends code to Claude for deep semantic analysis, catching logic-level vulnerabilities SAST misses
 
 ### 🔧 Automated Self-Healing Loops
@@ -71,6 +71,7 @@ Open Settings (`Cmd+,`) → search "Sentinel":
 | Setting | Default | Description |
 |---|---|---|
 | `sentinel.anthropicApiKey` | `""` | **Required** for LLM Critic. Get key at console.anthropic.com |
+| `sentinel.llmModel` | `claude-sonnet-4-20250514` | Anthropic model for the LLM Critic (`claude-sonnet-4-20250514`, `claude-opus-4-20250514`, `claude-haiku-35-20241022`) |
 | `sentinel.scanOnSave` | `true` | Auto-scan on file save |
 | `sentinel.scanOnType` | `false` | Scan while typing (slower) |
 | `sentinel.maskSecrets` | `true` | Mask detected secrets |
